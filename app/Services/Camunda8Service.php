@@ -4,6 +4,7 @@ namespace App\Services;
 
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Cache;
+use Log;
 
 class Camunda8Service
 {
@@ -15,16 +16,24 @@ class Camunda8Service
         // トークンをキャッシュしてAPI負荷を減らす（有効期限より少し短めに設定）
         return Cache::remember('camunda_token', 300, function () {
             $response = Http::asForm()->post(env('CAMUNDA_AUTH_URL'), [
+#               'grant_type' => 'password',
                 'grant_type' => 'client_credentials',
+                'username' => 'hirasa_koji',
+                'password' => '##00Marinyan',
+               
                 'client_id' => env('CAMUNDA_CLIENT_ID'),
+#               'audience' => 'tasklist.camunda.io',
                 'client_secret' => env('CAMUNDA_CLIENT_SECRET'),
                 // SaaSの場合は audience パラメータが必要な場合があります
             ]);
 
             if ($response->failed()) {
+                Log::error('Camunda Auth Failed: ' . $response->body());
                 throw new \Exception('Camunda Auth Failed: ' . $response->body());
             }
 
+        #    dd($response);
+            Log::info('Camunda Auth success.  access_token:' . $response->json()['access_token']);
             return $response->json()['access_token'];
         });
     }
@@ -61,14 +70,22 @@ class Camunda8Service
      */
     public function getTasks()
     {
-        $url = rtrim(env('CAMUNDA_TASKLIST_URL'), '/') . '/tasks/search';
+#        $url = rtrim(env('CAMUNDA_TASKLIST_URL'), '/') . '/tasks/search';
+        $url = rtrim(env('CAMUNDA_TASKLIST_URL'), '/') . '/search';
 
+        Log::debug("getTasks url:" . $url );
         $response = $this->getClient()->post($url, [
             'state' => 'CREATED', // 未完了タスクのみ
-            'assigned' => false,  // 未割当などをフィルタ可能
+#           'assigned' => false,  // 未割当などをフィルタ可能
             // 'assignee' => 'demo', // 特定ユーザーで絞る場合
         ]);
+        if ($response->failed()) {
+            Log::error('getTasks Failed: ' . $response->body());
+            throw new \Exception('getTasks ' . $response->body());
+        }
 
+#        Log::debug("getTasks response:" . $response->json() );
+#        dd($response);
         return $response->json() ?? [];
     }
 

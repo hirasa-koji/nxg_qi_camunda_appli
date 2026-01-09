@@ -46,9 +46,11 @@
                             <table class="min-w-full leading-normal">
                                 <thead>
                                     <tr>
+                                        <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">タスクID</th>
                                         <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">タスク名</th>
                                         <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">プロセス名</th>
                                         <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">作成日時</th>
+                                        <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">ステータス</th>
                                         <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">操作</th>
                                     </tr>
                                 </thead>
@@ -56,16 +58,22 @@
                                     @foreach($tasks as $task)
                                     <tr>
                                         <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">
+                                            {{ $task['id'] ?? '' }}
+                                        </td>
+                                        <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">
                                             {{ $task['name'] ?? 'No Name' }}
                                         </td>
                                         <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">
-                                            {{ $task['processDefinitionId'] ?? '-' }}
+                                            {{ $task['processName'] ?? '-' }}
                                         </td>
                                         <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">
-                                            {{ \Carbon\Carbon::parse($task['creationTime'])->timezone('Asia/Tokyo')->format('Y-m-d H:i') }}
+                                            {{ \Carbon\Carbon::parse($task['creationDate'] )->setTimezone('Asia/Tokyo')->format('Y/m/d H:i:s')  }}
                                         </td>
                                         <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">
-                                            <form action="{{ route('task.complete', $task['id']) }}" method="POST">
+                                            {{ $task['taskState'] ?? '-' }}
+                                        </td>
+                                        <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">
+                                            <form action="" method="POST">
                                                 @csrf
                                                 <button type="submit" class="bg-green-500 hover:bg-green-700 text-white font-bold py-1 px-3 rounded text-xs">
                                                     完了する
